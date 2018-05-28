@@ -91,7 +91,6 @@ def add_bb_to_img(img_orig, boxes):
 def inference_single_image(pb_file, meta_file, img_test_path, img_out_name, threshold):
     meta = get_meta(meta_file)
     meta['thresh'] = threshold
-
     graph = load_graph(pb_file)
     x = graph.get_tensor_by_name('prefix/input:0')
     y = graph.get_tensor_by_name('prefix/output:0')

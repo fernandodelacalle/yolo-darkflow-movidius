@@ -165,6 +165,7 @@ def inference_video(graph_file, meta_file, video_in_name, video_out_name, thresh
     out.release()
     
 def inference_video_test_times(graph_file, meta_file, video_in_name, video_out_name, threshold):
+    
     meta = get_meta(meta_file)
     meta['thresh'] = threshold   
     dev = get_mvnc_device()
@@ -235,7 +236,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
 # graph_file = 'built_graph/yolov2-tiny-voc.graph'
 # meta_file = 'built_graph/yolov2-tiny-voc.meta'
