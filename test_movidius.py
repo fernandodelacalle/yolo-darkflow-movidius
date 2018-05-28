@@ -3,6 +3,7 @@ import numpy as np
 import json
 import mvnc.mvncapi as mvncapi
 import time
+import argparse
 
 from darkflow.cython_utils.cy_yolo2_findboxes import box_constructor
 
@@ -83,16 +84,11 @@ def add_bb_to_img(img_orig, boxes):
 
 def get_mvnc_device():
     mvncapi.global_set_option(mvncapi.GlobalOption.RW_LOG_LEVEL, 4)
-    # get a list of names for all the devices plugged into the system
     devices = mvncapi.enumerate_devices()
     if (len(devices) < 1):
-        print("Error - no NCS devices detected, verify an NCS device is connected.")
+        print("Error - no NCS devices detected.")
         quit() 
-    # get the first NCS device by its name.  
-    # For this program we will always open the first NCS device.
     dev = mvncapi.Device(devices[0])
-    # try to open the device.  this will throw an exception
-    # if someone else has it open already
     try:
         dev.open()
     except:
@@ -104,19 +100,15 @@ def load_graph(dev, GRAPH_FILEPATH):
     with open(GRAPH_FILEPATH, mode='rb') as f:
         graph_file_buffer = f.read()    
     graph = mvncapi.Graph('graph1') 
-    # input_fifo, output_fifo = graph.allocate_with_fifos(dev, graph_file_buffer,
-    #     input_fifo_type=mvncapi.FifoType.HOST_WO, input_fifo_data_type=mvncapi.FifoDataType.FP32, input_fifo_num_elem=2, 
-    #     output_fifo_type=mvncapi.FifoType.HOST_RO, output_fifo_data_type=mvncapi.FifoDataType.FP32, output_fifo_num_elem=2)   
     input_fifo, output_fifo = graph.allocate_with_fifos(dev, graph_file_buffer)
     return graph, input_fifo, output_fifo
 
 def inference_image(graph_file, meta_file, img_in_name, img_out_name, threshold):
     meta = get_meta(meta_file)
     meta['thresh'] = threshold
-    
     dev = get_mvnc_device()
     graph, input_fifo, output_fifo = load_graph(dev, graph_file)
-    
+
     img = cv2.imread(img_in_name)
     img = img.astype(np.float32)
     img_orig = np.copy(img)
@@ -156,7 +148,6 @@ def inference_video(graph_file, meta_file, video_in_name, video_out_name, thresh
         frame_orig = np.copy(frame)
         img_orig_dimensions = frame_orig.shape
         frame = pre_proc_img(frame, meta)         
-
         start = time.time()
         graph.queue_inference_with_fifo_elem(
             input_fifo, output_fifo, frame, 'user object')
@@ -168,7 +159,6 @@ def inference_video(graph_file, meta_file, video_in_name, video_out_name, thresh
         y_out = np.squeeze(y_out)
         # # Posproc
         boxes = procces_out(y_out, meta, img_orig_dimensions)
-        # # print boxes
         add_bb_to_img(frame_orig, boxes)
         out.write(frame_orig)
     cap.release()
@@ -186,47 +176,75 @@ def inference_video_test_times(graph_file, meta_file, video_in_name, video_out_n
     height= int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter(video_out_name, fourcc, fps, (width,height))
-    
     times = []
     for i in range(200):
         ret, frame = cap.read()
         if not ret:
             print("Video Ended")
             break   
-
         frame_orig = np.copy(frame)
         img_orig_dimensions = frame_orig.shape
         frame = pre_proc_img(frame, meta)         
-
         start = time.time()
         graph.queue_inference_with_fifo_elem(input_fifo, output_fifo, frame, 'user object')
         output, user_obj = output_fifo.read_elem()
         end = time.time()
         print('Frame: {} FPS: {}'.format(i,  (1/ (end - start))  ) )
         times.append((1/ (end - start)))
-
         print(  dev.get_option(mvncapi.DeviceOption.RO_CURRENT_MEMORY_USED)  / dev.get_option(mvncapi.DeviceOption.RO_MEMORY_SIZE)  )
-
         y_out = np.reshape(output, (13, 13,125))
         y_out = np.squeeze(y_out)
         # # Posproc
         boxes = procces_out(y_out, meta, img_orig_dimensions)
-        # # print boxes
         add_bb_to_img(frame_orig, boxes)
         out.write(frame_orig)
     cap.release()
     out.release()
     print('mean_fps: {}'.format(np.mean(times)))
 
-graph_file = 'built_graph/yolov2-tiny-voc.graph'
-meta_file = 'built_graph/yolov2-tiny-voc.meta'
-img_in_name = 'sample_person.jpg'
-img_out_name = 'test_out.jpg'
-# threshold = 0.2
-#inference_image(graph_file, meta_file, img_in_name, img_out_name, threshold)
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-i", "--input_video", 
+        required=True, 
+        help="path to input video")
+    ap.add_argument(
+        "-o", "--output_video", 
+        required=True, 
+        help="path to output video")
+    ap.add_argument(
+        "-m", "--meta_file", 
+        required=True, 
+        help="path to meta file")
+    ap.add_argument(
+        "-mg", "--movidius_graph", 
+        required=True, 
+        help="path to movidius graph")
+    ap.add_argument(
+        "-th", "--threshold", 
+        required=False,
+        default = 0.3, 
+        help="threshold")
+    args = ap.parse_args()
+    inference_video_test_times(
+        args.movidius_graph, 
+        args.meta_file, 
+        args.input_video, 
+        args.output_video, 
+        args.threshold)
 
-video_in = '/datos/object-detection/videos_to_test/manana.avi'
-video_out = 'test_out.avi'
-threshold = 0.3
-#inference_video(graph_file, meta_file, video_in, video_out, threshold)
-inference_video_test_times(graph_file, meta_file, video_in, video_out, threshold)
+if __name__ == '__main__':
+    main()
+
+
+# graph_file = 'built_graph/yolov2-tiny-voc.graph'
+# meta_file = 'built_graph/yolov2-tiny-voc.meta'
+# img_in_name = 'sample_person.jpg'
+# img_out_name = 'test_out.jpg'
+# # threshold = 0.2
+# #inference_image(graph_file, meta_file, img_in_name, img_out_name, threshold)
+# video_in = '/datos/object-detection/videos_to_test/manana.avi'
+# video_out = 'test_out.avi'
+# threshold = 0.3
+# #inference_video(graph_file, meta_file, video_in, video_out, threshold)
+# inference_video_test_times(graph_file, meta_file, video_in, video_out, threshold)
