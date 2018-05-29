@@ -211,15 +211,18 @@ def main():
         help="path to input video")
     ap.add_argument(
         "-o", "--output_video", 
-        required=True, 
+        required=False,
+        default='out.avi',
         help="path to output video")
     ap.add_argument(
         "-m", "--meta_file", 
-        required=True, 
+        required=False,
+        default='built_graph/tiny-yolo-voc.meta',
         help="path to meta file")
     ap.add_argument(
         "-mg", "--movidius_graph", 
-        required=True, 
+        required=False,
+        default= 'built_graph/tiny-yolo-voc.graph',
         help="path to movidius graph")
     ap.add_argument(
         "-th", "--threshold", 
