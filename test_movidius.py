@@ -60,7 +60,7 @@ def inference_video(graph_file,
             input_fifo, output_fifo, frame, 'user object')
         output, _ = output_fifo.read_elem()
         end = time.time()
-        print('FPS: {}'.format((1/ (end - start))  ) )
+        print('FPS: {:.2f}'.format((1 / (end - start))))
         times.append((1/ (end - start)))
         y_out = np.reshape(output, (13, 13,125))
         y_out = np.squeeze(y_out)

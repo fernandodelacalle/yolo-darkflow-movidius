@@ -25,14 +25,11 @@ def inference_single_image(pb_file,
     x = graph.get_tensor_by_name('prefix/input:0')
     y = graph.get_tensor_by_name('prefix/output:0')
     with tf.Session(graph=graph) as sess:
-        # Preproc    
         img = cv2.imread(img_test_path)
         img_orig = np.copy(img)
         img_orig_dimensions = img_orig.shape
         img = yolo_utils.pre_proc_img(img, meta)
-        # inference
         y_out = sess.run(y,feed_dict={x:img})
-        # Posproc
         y_out = np.squeeze(y_out)
         boxes = yolo_utils.procces_out(y_out, meta, img_orig_dimensions)
         yolo_utils.add_bb_to_img(img_orig, boxes)
@@ -69,7 +66,7 @@ def inference_video(pb_file,
             start = time.time()
             y_out = sess.run(y,feed_dict={x:frame})            
             end = time.time()
-            print('FPS: {}'.format( (1/ (end - start) )))
+            print('FPS: {:.2f}'.format((1 / (end - start))))
             times.append((1/ (end - start)))
             y_out = np.squeeze(y_out)
             boxes = yolo_utils.procces_out(y_out, meta, img_orig_dimensions)
@@ -112,3 +109,6 @@ def main():
         args.input_video, 
         args.output_video,
         args.threshold)
+
+if __name__ == '__main__':
+    main()
