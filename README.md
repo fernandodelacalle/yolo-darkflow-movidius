@@ -1,8 +1,8 @@
-# yolo-darkflow-movidius
+
 
 Need to have darkflow (https://github.com/thtrieu/darkflow) installed in the path.
 
-You can follow the next steps: 
+You can follow the next steps o run the install.sh script: 
 ```
 git clone https://github.com/fernandodelacalle/yolo-darkflow-movidius.git
 
@@ -33,4 +33,9 @@ mv  darkflow_all/built_graph/ .
 Finally compile the pb to a movidus graph as follows:
 ```
 mvNCCompile built_graph/tiny-yolo-voc.pb -s 12 -in input -on output -o built_graph/tiny-yolo-voc.graph
+```
+
+Run yolov2 in the movidius with:
+```
+python3 test_movidius.py -i video.avi
 ```
