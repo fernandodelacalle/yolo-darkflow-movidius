@@ -8,18 +8,17 @@ import argparse
 import movidus_utils
 import yolo_utils
 
-
 def inference_image(graph_file, meta_file, img_in_name, img_out_name, threshold):
-    meta = get_meta(meta_file)
+    meta = yolo_utils.get_meta(meta_file)
     meta['thresh'] = threshold
-    dev = get_mvnc_device()
-    graph, input_fifo, output_fifo = load_graph(dev, graph_file)
+    dev = movidus_utils.get_mvnc_device()
+    graph, input_fifo, output_fifo = movidus_utils.load_graph(dev, graph_file)
 
     img = cv2.imread(img_in_name)
     img = img.astype(np.float32)
     img_orig = np.copy(img)
     img_orig_dimensions = img_orig.shape
-    img = pre_proc_img(img, meta)    
+    img = yolo_utils.pre_proc_img(img, meta)
     
     graph.queue_inference_with_fifo_elem(input_fifo, output_fifo, img, 'user object')
     output, user_obj = output_fifo.read_elem()
@@ -28,17 +27,17 @@ def inference_image(graph_file, meta_file, img_in_name, img_out_name, threshold)
     
     y_out = np.reshape(output, (13, 13,125))
     y_out = np.squeeze(y_out)
-    boxes = procces_out(y_out, meta, img_orig_dimensions)
+    boxes = yolo_utils.procces_out(y_out, meta, img_orig_dimensions)
     print(boxes)
     
-    add_bb_to_img(img_orig, boxes)
+    yolo_utils.add_bb_to_img(img_orig, boxes)
     cv2.imwrite(img_out_name, img_orig)
 
 def inference_video(graph_file, meta_file, video_in_name, video_out_name, threshold):
-    meta = get_meta(meta_file)
+    meta = yolo_utils.get_meta(meta_file)
     meta['thresh'] = threshold   
-    dev = get_mvnc_device()
-    graph, input_fifo, output_fifo = load_graph(dev, graph_file)
+    dev = movidus_utils.get_mvnc_device()
+    graph, input_fifo, output_fifo = movidus_utils.load_graph(dev, graph_file)
     cap = cv2.VideoCapture()
     cap.open(video_in_name)
     fps = int(cap.get(cv2.CAP_PROP_FPS))  
@@ -53,29 +52,29 @@ def inference_video(graph_file, meta_file, video_in_name, video_out_name, thresh
             break   
         frame_orig = np.copy(frame)
         img_orig_dimensions = frame_orig.shape
-        frame = pre_proc_img(frame, meta)         
+        frame = yolo_utils.pre_proc_img(frame, meta)
         start = time.time()
         graph.queue_inference_with_fifo_elem(
             input_fifo, output_fifo, frame, 'user object')
-        output, user_obj = output_fifo.read_elem()
+        output, _ = output_fifo.read_elem()
         end = time.time()
         print('FPS: ',format(  (1/ (end - start))  ) )        
 
         y_out = np.reshape(output, (13, 13,125))
         y_out = np.squeeze(y_out)
         # # Posproc
-        boxes = procces_out(y_out, meta, img_orig_dimensions)
-        add_bb_to_img(frame_orig, boxes)
+        boxes = yolo_utils.procces_out(y_out, meta, img_orig_dimensions)
+        yolo_utils.add_bb_to_img(frame_orig, boxes)
         out.write(frame_orig)
     cap.release()
     out.release()
     
 def inference_video_test_times(graph_file, meta_file, video_in_name, video_out_name, threshold):
     
-    meta = get_meta(meta_file)
+    meta = yolo_utils.get_meta(meta_file)
     meta['thresh'] = threshold   
-    dev = get_mvnc_device()
-    graph, input_fifo, output_fifo = load_graph(dev, graph_file)
+    dev = movidus_utils.get_mvnc_device()
+    graph, input_fifo, output_fifo = movidus_utils.load_graph(dev, graph_file)
     cap = cv2.VideoCapture()
     cap.open(video_in_name)
     fps = int(cap.get(cv2.CAP_PROP_FPS))  
@@ -91,19 +90,18 @@ def inference_video_test_times(graph_file, meta_file, video_in_name, video_out_n
             break   
         frame_orig = np.copy(frame)
         img_orig_dimensions = frame_orig.shape
-        frame = pre_proc_img(frame, meta)         
+        frame = yolo_utils.pre_proc_img(frame, meta)
         start = time.time()
         graph.queue_inference_with_fifo_elem(input_fifo, output_fifo, frame, 'user object')
-        output, user_obj = output_fifo.read_elem()
+        output, _ = output_fifo.read_elem()
         end = time.time()
         print('Frame: {} FPS: {}'.format(i,  (1/ (end - start))  ) )
         times.append((1/ (end - start)))
-        print(  dev.get_option(mvncapi.DeviceOption.RO_CURRENT_MEMORY_USED)  / dev.get_option(mvncapi.DeviceOption.RO_MEMORY_SIZE)  )
         y_out = np.reshape(output, (13, 13,125))
         y_out = np.squeeze(y_out)
         # # Posproc
-        boxes = procces_out(y_out, meta, img_orig_dimensions)
-        add_bb_to_img(frame_orig, boxes)
+        boxes = yolo_utils.procces_out(y_out, meta, img_orig_dimensions)
+        yolo_utils.add_bb_to_img(frame_orig, boxes)
         out.write(frame_orig)
     cap.release()
     out.release()
