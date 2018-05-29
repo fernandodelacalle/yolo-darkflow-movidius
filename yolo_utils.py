@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import json
-
 from darkflow.cython_utils.cy_yolo2_findboxes import box_constructor
 
 def get_meta(meta_file):
