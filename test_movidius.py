@@ -239,15 +239,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# graph_file = 'built_graph/yolov2-tiny-voc.graph'
-# meta_file = 'built_graph/yolov2-tiny-voc.meta'
-# img_in_name = 'sample_person.jpg'
-# img_out_name = 'test_out.jpg'
-# # threshold = 0.2
-# #inference_image(graph_file, meta_file, img_in_name, img_out_name, threshold)
-# video_in = '/datos/object-detection/videos_to_test/manana.avi'
-# video_out = 'test_out.avi'
-# threshold = 0.3
-# #inference_video(graph_file, meta_file, video_in, video_out, threshold)
-# inference_video_test_times(graph_file, meta_file, video_in, video_out, threshold)
+    
