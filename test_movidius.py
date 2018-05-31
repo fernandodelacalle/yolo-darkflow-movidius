@@ -24,7 +24,7 @@ def inference_image(graph_file,
     graph.queue_inference_with_fifo_elem(
         input_fifo, output_fifo, img, 'user object')
     output, _ = output_fifo.read_elem()
-    y_out = np.reshape(output, (13, 13,125))
+    y_out = np.reshape(output, (13, 13, 125))
     y_out = np.squeeze(y_out)
     boxes = yolo_utils.procces_out(y_out, meta, img_orig_dimensions)
     yolo_utils.add_bb_to_img(img_orig, boxes)
@@ -64,7 +64,6 @@ def inference_video(graph_file,
         times.append((1/ (end - start)))
         y_out = np.reshape(output, (13, 13,125))
         y_out = np.squeeze(y_out)
-        # # Posproc
         boxes = yolo_utils.procces_out(y_out, meta, img_orig_dimensions)
         yolo_utils.add_bb_to_img(frame_orig, boxes)
         out.write(frame_orig)

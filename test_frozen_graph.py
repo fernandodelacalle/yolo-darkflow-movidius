@@ -62,7 +62,6 @@ def inference_video(pb_file,
             frame_orig = np.copy(frame)
             img_orig_dimensions = frame_orig.shape
             frame = yolo_utils.pre_proc_img(frame, meta)
-            # inference
             start = time.time()
             y_out = sess.run(y,feed_dict={x:frame})            
             end = time.time()
@@ -102,7 +101,7 @@ def main():
         default=0.3,
         help="threshold")
     args = ap.parse_args()
-    
+        
     inference_video(
         args.pb_file, 
         args.meta_file, 
