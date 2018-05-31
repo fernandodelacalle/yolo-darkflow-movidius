@@ -39,5 +39,4 @@ RUN export PYTHONPATH="${PYTHONPATH}:/opt/movidius/caffe/python" && \
     mvNCCompile built_graph/tiny-yolo-voc.pb -s 12 -in input -on output -o built_graph/tiny-yolo-voc.graph
 
 RUN pip3 install flask
-CMD [ "/bin/bash" ]
-#CMD [ "python3", "main.py" ]
+CMD [ "python3", "main.py" ]
