@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  ncsdk-yolo:
+    build: . 
+    image: ncsdk-yolo
+    container_name: ncsdk-yolo
+    volumes:
+      - /dev:/dev  
+      - /datos/computer-vision/test_videos/videos_obj_detection:/workspace/videos_to_test
+    ports:
+      - "5000:5000"
+    privileged: true
+    network_mode: host

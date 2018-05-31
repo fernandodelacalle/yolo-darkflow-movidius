@@ -6,9 +6,9 @@ import time
 
 class VideoCamera(object):
     def __init__(self):
-        graph_file = 'built_graph/yolov2-tiny-voc.graph'
-        meta_file = 'built_graph/yolov2-tiny-voc.meta'
-        video_in_path = '/datos/object-detection/videos_to_test/manana.avi'
+        graph_file = 'built_graph/tiny-yolo-voc.graph'
+        meta_file = 'built_graph/tiny-yolo-voc.meta'
+        video_in_path = '../videos_to_test/manana.avi'
         threshold = 0.25
         print('Start configuration')
         self.video = cv2.VideoCapture()

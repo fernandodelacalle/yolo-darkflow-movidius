@@ -1,5 +1,3 @@
-
-
 Need to have darkflow (https://github.com/thtrieu/darkflow) installed in the path.
 
 You can follow the next steps o run the install.sh script: 
